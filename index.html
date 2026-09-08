@@ -40,8 +40,8 @@
       <a href="#poster" class="btn btn-ghost">查看海报设计 →</a>
     </div>
     <div class="hero-meta">
-      <div class="m"><b>34</b><span>精选作品</span></div>
-      <div class="m"><b>12</b><span>视频作品</span></div>
+      <div class="m"><b>37</b><span>精选作品</span></div>
+      <div class="m"><b>15</b><span>视频作品</span></div>
       <div class="m"><b>11</b><span>AI 作品</span></div>
       <div class="m"><b>11</b><span>海报设计</span></div>
     </div>
@@ -110,6 +110,26 @@
       <figure><img src="works/video/fenjing-5.jpg" alt="分镜场景 5"><figcaption>场景五</figcaption></figure>
     </div>
     <div class="flow"><b>分镜脚本</b> <i>→</i> <b>场景设计</b> <i>→</i> <b>PR 剪辑</b> <i>→</i> <b>配乐</b> <i>→</i> <b>字幕包装</b> <i>→</i> <b>成片</b></div>
+  </div>
+
+  <!-- Featured: 一剑破万法 -->
+  <div class="featured reveal" style="margin-top:22px">
+    <div class="featured-head">
+      <div>
+        <h3><span>AIGC 项目</span> · 修仙 PV《一剑破万法》</h3>
+        <p>
+          剑修 × 魔尊对决的 AIGC 修仙概念 PV。从世界观设定、分镜故事板到角色设定，
+          通过 AI 生成画面与剪辑合成 40 秒概念短片，融合水墨与玄幻数字视觉。
+        </p>
+      </div>
+      <a href="#" class="btn btn-ghost" data-video="videos/xiuxian-pv-chengpian.mp4" data-cap="《一剑破万法》40秒 PV · 无 BGM">▶ 播放成片</a>
+    </div>
+    <div class="shots">
+      <figure><img src="works/xiuxian/fenjing-gushiban.jpg" alt="16格分镜故事板"><figcaption>16 格分镜故事板</figcaption></figure>
+      <figure><img src="works/xiuxian/jiaose-changjing.jpg" alt="角色场景设定"><figcaption>角色场景设定页</figcaption></figure>
+      <figure><img src="works/xiuxian/jianxiu-sanyt.jpg" alt="剑修三视图"><figcaption>剑修 · 沈砚秋 三视图</figcaption></figure>
+    </div>
+    <div class="flow"><b>世界观设定</b> <i>→</i> <b>分镜故事板</b> <i>→</i> <b>角色/场景 AI 生成</b> <i>→</i> <b>首尾帧动画</b> <i>→</i> <b>剪辑成片</b></div>
   </div>
 
   <div class="filters" style="margin-top:34px" id="videoFilters">
@@ -219,6 +239,30 @@
         <h3>《钢铁意志》游戏演示</h3>
         <p class="sub">健身训练游戏 · 实机演示</p>
         <div class="tags"><span>游戏</span><span>演示</span></div>
+      </div>
+    </div>
+    <div class="work-card reveal" data-cat="ai">
+      <div class="thumb"><img src="posters/xiuxian-pv-chengpian.jpg" alt=""><span class="dur">0:40</span><div class="play-ic"></div></div>
+      <div class="meta">
+        <h3>修仙 PV · 《一剑破万法》</h3>
+        <p class="sub">剑修 vs 魔尊 · AIGC 概念短片</p>
+        <div class="tags"><span>AI</span><span>修仙</span></div>
+      </div>
+    </div>
+    <div class="work-card reveal" data-cat="ai">
+      <div class="thumb"><img src="posters/xiuxian-lizika.jpg" alt=""><span class="dur">0:05</span><div class="play-ic"></div></div>
+      <div class="meta">
+        <h3>一剑破万法 · 粒子字卡</h3>
+        <p class="sub">PV 片名粒子特效字卡</p>
+        <div class="tags"><span>AI</span><span>特效</span></div>
+      </div>
+    </div>
+    <div class="work-card reveal" data-cat="ai">
+      <div class="thumb"><img src="posters/xiuxian-S4-chuqiao.jpg" alt=""><span class="dur">0:04</span><div class="play-ic"></div></div>
+      <div class="meta">
+        <h3>一剑破万法 · S4 出鞘</h3>
+        <p class="sub">镜头分镜 · 少年墨剑出鞘</p>
+        <div class="tags"><span>AI</span><span>分镜</span></div>
       </div>
     </div>
   </div>
@@ -496,6 +540,13 @@ document.querySelectorAll('#aiGrid .work-card, #posterGrid .work-card').forEach(
     const img = card.querySelector('img').getAttribute('src');
     const title = card.querySelector('h3').textContent;
     openModal({ img, cap: title, type: 'img' });
+  });
+});
+document.querySelectorAll('.featured .shots figure').forEach(fig => {
+  fig.addEventListener('click', () => {
+    const img = fig.querySelector('img').getAttribute('src');
+    const cap = fig.querySelector('figcaption').textContent;
+    openModal({ img, cap, type: 'img' });
   });
 });
 document.getElementById('modalClose').addEventListener('click', closeModal);
