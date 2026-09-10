@@ -9,8 +9,9 @@
 </head>
 <body>
 
-<div class="bg-grid"></div>
-<div class="bg-glow"></div>
+<canvas id="bg-canvas" aria-hidden="true"></canvas>
+<div class="bg-grain" aria-hidden="true"></div>
+<div id="progress" aria-hidden="true"></div>
 
 <nav>
   <div class="nav-inner">
@@ -82,6 +83,23 @@
     </div>
   </div>
 </section>
+
+<div class="marquee" aria-hidden="true">
+  <div class="marquee-track">
+    <span class="solid">视频创作</span><span class="dot">◆</span>
+    <span>AIGC 内容创作</span><span class="dot">◆</span>
+    <span class="solid">视觉设计</span><span class="dot">◆</span>
+    <span>概念设定</span><span class="dot">◆</span>
+    <span class="solid">分镜叙事</span><span class="dot">◆</span>
+    <span>游戏美术</span><span class="dot">◆</span>
+    <span class="solid">视频创作</span><span class="dot">◆</span>
+    <span>AIGC 内容创作</span><span class="dot">◆</span>
+    <span class="solid">视觉设计</span><span class="dot">◆</span>
+    <span>概念设定</span><span class="dot">◆</span>
+    <span class="solid">分镜叙事</span><span class="dot">◆</span>
+    <span>游戏美术</span><span class="dot">◆</span>
+  </div>
+</div>
 
 <section id="video">
   <div class="section-head">
@@ -583,101 +601,6 @@
   </div>
 </div>
 
-<script>
-// ---------- modal player ----------
-const modal = document.getElementById('modal');
-const modalVideo = document.getElementById('modalVideo');
-const modalImg = document.getElementById('modalImg');
-const modalCap = document.getElementById('modalCap');
-
-function openModal({ src, img, cap, type }) {
-  modal.classList.add('open');
-  modalCap.textContent = cap || '';
-  if (type === 'img') {
-    modalVideo.style.display = 'none';
-    modalVideo.pause();
-    modalVideo.removeAttribute('src');
-    modalVideo.load();
-    modalImg.style.display = 'block';
-    modalImg.src = img;
-  } else {
-    modalImg.style.display = 'none';
-    modalImg.removeAttribute('src');
-    modalVideo.style.display = 'block';
-    modalVideo.src = src;
-    modalVideo.play().catch(() => {});
-  }
-}
-function openVideo(src, cap) { openModal({ src, cap, type: 'video' }); }
-function closeModal() {
-  modalVideo.pause();
-  modalVideo.removeAttribute('src');
-  modalVideo.load();
-  modalImg.removeAttribute('src');
-  modal.classList.remove('open');
-}
-document.querySelectorAll('[data-video]').forEach(a => {
-  a.addEventListener('click', e => {
-    e.preventDefault();
-    openVideo(a.dataset.video, a.dataset.cap);
-  });
-});
-document.querySelectorAll('#videoGrid .work-card').forEach(card => {
-  card.addEventListener('click', () => {
-    const title = card.querySelector('h3').textContent;
-    const dur = card.querySelector('.dur').textContent;
-    const poster = card.querySelector('img').getAttribute('src');
-    const file = poster.replace('posters/', '').replace('.jpg', '');
-    if (file) openVideo('videos/' + file + '.mp4', `${title} · ${dur}`);
-  });
-});
-document.querySelectorAll('#aiGrid .work-card, #posterGrid .work-card').forEach(card => {
-  card.addEventListener('click', () => {
-    const img = card.querySelector('img').getAttribute('src');
-    const title = card.querySelector('h3').textContent;
-    openModal({ img, cap: title, type: 'img' });
-  });
-});
-document.querySelectorAll('.featured .shots figure').forEach(fig => {
-  fig.addEventListener('click', () => {
-    const img = fig.querySelector('img').getAttribute('src');
-    const cap = fig.querySelector('figcaption').textContent;
-    openModal({ img, cap, type: 'img' });
-  });
-});
-document.getElementById('modalClose').addEventListener('click', closeModal);
-modal.addEventListener('click', e => { if (e.target === modal) closeModal(); });
-document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal(); });
-
-// ---------- filter ----------
-document.querySelectorAll('#videoFilters .fil').forEach(btn => {
-  btn.addEventListener('click', () => {
-    document.querySelectorAll('#videoFilters .fil').forEach(b => b.classList.remove('on'));
-    btn.classList.add('on');
-    const f = btn.dataset.f;
-    document.querySelectorAll('#videoGrid .work-card').forEach(card => {
-      const show = f === 'all' || card.dataset.cat === f;
-      card.style.display = show ? '' : 'none';
-    });
-  });
-});
-
-// ---------- reveal on scroll ----------
-const io = new IntersectionObserver(entries => {
-  entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('in'); io.unobserve(e.target); } });
-}, { threshold: 0.08 });
-document.querySelectorAll('.reveal').forEach(el => io.observe(el));
-
-// ---------- smooth anchor offset ----------
-document.querySelectorAll('a[href^="#"]').forEach(a => {
-  a.addEventListener('click', e => {
-    const id = a.getAttribute('href');
-    if (id.length > 1) {
-      const t = document.querySelector(id);
-      if (t) { e.preventDefault(); window.scrollTo({ top: t.offsetTop - 60, behavior: 'smooth' }); }
-    }
-  });
-});
-</script>
+<script src="assets/app.js"></script>
 </body>
 </html>
