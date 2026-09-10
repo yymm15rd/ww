@@ -514,9 +514,122 @@
   }
 
   /* ------------------------------------------------------------------ */
+  /* 11. 首屏 3D 环绕作品集（CSS 3D 圆柱，可拖拽旋转）                   */
+  /* ------------------------------------------------------------------ */
+  function initOrbit() {
+    var stage = document.getElementById('orbitStage');
+    var box = document.getElementById('orbit');
+    if (!stage || !box) return;
+
+    var IMGS = [
+      'works/orbit/o01.jpg',
+      'works/orbit/o02.jpg',
+      'works/orbit/o03.jpg',
+      'works/orbit/o04.jpg',
+      'works/orbit/o05.jpg',
+      'works/orbit/o06.jpg',
+      'works/orbit/o07.jpg',
+      'works/orbit/o08.jpg',
+      'works/orbit/o09.jpg',
+      'works/orbit/o10.jpg',
+      'works/orbit/o11.jpg',
+      'works/orbit/o12.jpg'
+    ];
+
+    var N = IMGS.length;
+    var STEP = 360 / N;
+    var items = [];
+
+    for (var i = 0; i < N; i++) {
+      var item = document.createElement('div');
+      item.className = 'orbit-item';
+      var img = document.createElement('img');
+      img.src = IMGS[i];
+      img.alt = '';
+      img.decoding = 'async';   // 首屏环绕图体积很小(共约370KB)，立即加载，不用 lazy
+      item.appendChild(img);
+      stage.appendChild(item);
+      items.push(item);
+    }
+
+    // 半径按卡片实际宽度推算（略收小让卡片轻微交叠），并随窗口尺寸重算
+    function layout() {
+      var w = stage.offsetWidth || 184;
+      var radius = Math.round((w / 2) / Math.tan(Math.PI / N) * 0.92);
+      for (var k = 0; k < N; k++) {
+        items[k].style.transform = 'rotateY(' + (k * STEP) + 'deg) translateZ(' + radius + 'px)';
+      }
+    }
+    layout();
+
+    var rzTimer = 0;
+    window.addEventListener('resize', function () {
+      clearTimeout(rzTimer);
+      rzTimer = setTimeout(layout, 160);
+    }, { passive: true });
+
+    var angle = 0;
+    var speed = reduce ? 0 : 0.11;   // 度/帧
+    var spin = 0;                    // 拖拽惯性
+    var dragging = false, lastX = 0;
+    var visible = true;
+    var lastDrawn = null;
+
+    function render() {
+      var v = angle.toFixed(2);
+      if (v === lastDrawn) return;
+      lastDrawn = v;
+      stage.style.transform = 'rotateX(-6deg) rotateY(' + v + 'deg)';
+    }
+
+    function tick() {
+      if (visible) {
+        if (!dragging) {
+          angle += speed;
+          if (Math.abs(spin) > 0.02) { angle += spin; spin *= 0.93; }
+        }
+        render();
+      }
+      requestAnimationFrame(tick);
+    }
+
+    box.addEventListener('pointerdown', function (e) {
+      dragging = true;
+      lastX = e.clientX;
+      spin = 0;
+      try { box.setPointerCapture(e.pointerId); } catch (err) {}
+    });
+    box.addEventListener('pointermove', function (e) {
+      if (!dragging) return;
+      var dx = e.clientX - lastX;
+      lastX = e.clientX;
+      angle += dx * 0.34;
+      spin = dx * 0.34;
+      render();   // 拖拽即时响应
+    });
+    function endDrag(e) {
+      if (!dragging) return;
+      dragging = false;
+      try { box.releasePointerCapture(e.pointerId); } catch (err) {}
+    }
+    box.addEventListener('pointerup', endDrag);
+    box.addEventListener('pointercancel', endDrag);
+
+    if ('IntersectionObserver' in window) {
+      new IntersectionObserver(function (entries) {
+        entries.forEach(function (en) { visible = en.isIntersecting; });
+      }, { threshold: 0 }).observe(box);
+    }
+
+    render();
+    requestAnimationFrame(tick);
+  }
+
+  /* ------------------------------------------------------------------ */
   function init() {
     initBackground();
     splitHero();
+    initOrbit();
     initReveal();
     initCounters();
     initScroll();
