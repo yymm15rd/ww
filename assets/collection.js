@@ -2,16 +2,30 @@
  'use strict';
  const $=s=>document.querySelector(s), $$=s=>Array.from(document.querySelectorAll(s));
  const all=window.PORTFOLIO_CASES||[], dialog=$('#caseModal');let current=null,index=0,previous=null;
- function render(){const im=current.images[index];$('#caseImage').src=im.src;$('#caseImage').alt=current.title+' · '+im.label;$('#caseLabel').textContent=im.label;$('#casePosition').textContent=(index+1)+' / '+current.images.length;$('#caseFull').href=im.src;$('#casePrev').disabled=index===0;$('#caseNext').disabled=index===current.images.length-1;}
+ const caseImage=$('#caseImage');
+ const caseStatus=document.createElement('div');caseStatus.className='media-status';caseStatus.setAttribute('role','status');caseStatus.setAttribute('aria-live','polite');
+ const caseRetry=document.createElement('button');caseRetry.type='button';caseRetry.className='media-retry';caseRetry.textContent='重试加载';caseRetry.hidden=true;
+ caseImage.after(caseStatus,caseRetry);
+ function render(){
+  const im=current.images[index];
+  caseStatus.textContent='正在加载图片…';caseRetry.hidden=true;
+  caseImage.onload=()=>{if(!dialog.hidden){caseStatus.textContent='';caseRetry.hidden=true;}};
+  caseImage.onerror=()=>{if(!dialog.hidden){caseStatus.textContent='图片加载失败，请重试。';caseRetry.hidden=false;}};
+  caseImage.alt=current.title+' · '+im.label;
+  caseImage.removeAttribute('src');caseImage.src=im.src;
+  $('#caseLabel').textContent=im.label;$('#casePosition').textContent=(index+1)+' / '+current.images.length;
+  $('#caseFull').href=im.src;$('#casePrev').disabled=index===0;$('#caseNext').disabled=index===current.images.length-1;
+ }
+ caseRetry.onclick=render;
  function close(){dialog.hidden=true;document.body.style.overflow='';$('#caseImage').removeAttribute('src');if(previous)previous.focus();}
  $$('.case-card').forEach(card=>card.addEventListener('click',()=>{current=all.find(c=>c.id===card.dataset.case);if(!current)return;previous=card;index=0;$('#caseTitle').textContent=current.title;$('#caseDescription').textContent=current.description;$('#caseTag').textContent=current.tag;$('#caseDetail').textContent=current.detail;dialog.hidden=false;document.body.style.overflow='hidden';render();$('#caseClose').focus();}));
  $('#caseClose').onclick=close;dialog.onclick=e=>{if(e.target===dialog)close();};$('#casePrev').onclick=()=>{if(index>0){index--;render();}};$('#caseNext').onclick=()=>{if(index<current.images.length-1){index++;render();}};
- document.addEventListener('keydown',e=>{if(dialog.hidden)return;if(e.key==='Escape')close();if(e.key==='ArrowRight')$('#caseNext').click();if(e.key==='ArrowLeft')$('#casePrev').click();if(e.key==='Tab'){const nodes=Array.from(dialog.querySelectorAll('button:not(:disabled),a[href]'));const first=nodes[0],last=nodes[nodes.length-1];if(e.shiftKey&&document.activeElement===first){e.preventDefault();last.focus();}else if(!e.shiftKey&&document.activeElement===last){e.preventDefault();first.focus();}}});
+ document.addEventListener('keydown',e=>{if(dialog.hidden)return;if(e.key==='Escape')close();if(e.key==='ArrowRight')$('#caseNext').click();if(e.key==='ArrowLeft')$('#casePrev').click();if(e.key==='Tab'){const nodes=Array.from(dialog.querySelectorAll('button:not(:disabled):not([hidden]),a[href]'));const first=nodes[0],last=nodes[nodes.length-1];if(e.shiftKey&&document.activeElement===first){e.preventDefault();last.focus();}else if(!e.shiftKey&&document.activeElement===last){e.preventDefault();first.focus();}}});
  $$('.work-card').forEach(card=>{card.tabIndex=0;card.setAttribute('role','button');card.setAttribute('aria-label',card.querySelector('h3').textContent);card.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();card.click();}});});
  // Assign understandable categories to existing cards without changing their content.
  $$('#aiGrid .work-card:not([data-cat])').forEach(c=>{const t=c.querySelector('h3').textContent;c.dataset.cat=/界面/.test(t)?'ui':/兵马俑|非遗重塑/.test(t)?'visual':/分镜|故事板/.test(t)?'storyboard':/场景|训练场|树林|天裂|剑冢|深渊/.test(t)?'scene':/角色|三视图|剑修|魔尊|少年|槐树/.test(t)?'character':'object';});
  $$('#posterGrid .work-card:not([data-cat])').forEach(c=>c.dataset.cat=/文字|Look/.test(c.textContent)?'type':'poster');
- $$('[data-filter]').forEach(wrap=>{const grid=document.getElementById(wrap.dataset.filter),cards=Array.from(grid.querySelectorAll('.work-card'));const result=document.getElementById(wrap.dataset.filter.replace('Grid','Result'));function filter(f){cards.forEach(c=>{c.hidden=f!=='all'&&c.dataset.cat!==f;});const visible=cards.filter(c=>!c.hidden);if(result)result.textContent='显示 '+visible.length+' 项 / 共 '+cards.length+' 项';}wrap.addEventListener('click',e=>{const b=e.target.closest('button[data-f]');if(!b)return;wrap.querySelectorAll('button').forEach(x=>{x.classList.toggle('on',x===b);x.setAttribute('aria-pressed',String(x===b));});filter(b.dataset.f);});filter('all');});
+ $$('[data-filter]').forEach(wrap=>{const grid=document.getElementById(wrap.dataset.filter),cards=Array.from(grid.querySelectorAll('.work-card'));const result=document.getElementById(wrap.dataset.filter.replace('Grid','Result'));function filter(f){cards.forEach(c=>{c.hidden=f!=='all'&&c.dataset.cat!==f;});const visible=cards.filter(c=>!c.hidden);if(result)result.textContent='显示 '+visible.length+' 项 / 共 '+cards.length+' 项';}wrap.querySelectorAll('button[data-f]').forEach(x=>x.setAttribute('aria-pressed',String(x.classList.contains('on'))));wrap.addEventListener('click',e=>{const b=e.target.closest('button[data-f]');if(!b)return;wrap.querySelectorAll('button').forEach(x=>{x.classList.toggle('on',x===b);x.setAttribute('aria-pressed',String(x===b));});filter(b.dataset.f);});filter('all');});
  // Mobile navigation remains visible and wraps instead of disappearing.
  const counts=['videoGrid','aiGrid','posterGrid','interactiveGrid'].map(id=>document.getElementById(id).querySelectorAll('.work-card').length);
  window.portfolioCounts={video:counts[0],ai:counts[1],poster:counts[2],interactive:counts[3],total:counts.reduce((a,b)=>a+b,0)};
