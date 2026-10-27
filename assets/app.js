@@ -398,10 +398,27 @@
     var modalVideo = $('#modalVideo');
     var modalImg = $('#modalImg');
     var modalCap = $('#modalCap');
+    var modalStatus = $('#modalStatus');
+    var modalRetry = $('#modalRetry');
+    var previousFocus = null;
+    var currentMedia = null;
+
+    function setMediaStatus(message, canRetry) {
+      modalStatus.textContent = message;
+      modalRetry.hidden = !canRetry;
+    }
 
     function openModal(o) {
+      if (!modal.classList.contains('open')) previousFocus = document.activeElement;
+      currentMedia = o;
       modal.classList.add('open');
+      document.body.style.overflow = 'hidden';
       modalCap.textContent = o.cap || '';
+      setMediaStatus('正在加载媒体…', false);
+      modalImg.onload = function () { if (modal.classList.contains('open')) setMediaStatus('', false); };
+      modalImg.onerror = function () { if (modal.classList.contains('open')) setMediaStatus('图片加载失败，请重试。', true); };
+      modalVideo.onloadeddata = function () { if (modal.classList.contains('open')) setMediaStatus('', false); };
+      modalVideo.onerror = function () { if (modal.classList.contains('open')) setMediaStatus('视频加载失败，请重试。', true); };
       if (o.type === 'img') {
         modalVideo.style.display = 'none';
         modalVideo.pause();
@@ -414,16 +431,27 @@
         modalImg.removeAttribute('src');
         modalVideo.style.display = 'block';
         modalVideo.src = o.src;
+        modalVideo.load();
         var p = modalVideo.play();
-        if (p && p.catch) p.catch(function () {});
+        if (p && p.catch) p.catch(function (err) {
+          if (!modal.classList.contains('open')) return;
+          if (err && err.name === 'NotAllowedError') setMediaStatus('自动播放被阻止，请使用播放器的播放按钮。', false);
+          else if (modalVideo.error) setMediaStatus('视频加载失败，请重试。', true);
+        });
       }
+      $('#modalClose').focus();
     }
     function closeModal() {
+      if (!modal.classList.contains('open')) return;
       modalVideo.pause();
       modalVideo.removeAttribute('src');
       try { modalVideo.load(); } catch (e) {}
       modalImg.removeAttribute('src');
       modal.classList.remove('open');
+      document.body.style.overflow = '';
+      setMediaStatus('', false);
+      if (previousFocus && previousFocus.isConnected) previousFocus.focus();
+      previousFocus = null;
     }
     window.__openVideo = function (src, cap) { openModal({ src: src, cap: cap, type: 'video' }); };
 
@@ -451,8 +479,9 @@
         openModal({ img: img.getAttribute('src'), cap: h3.textContent, type: 'img' });
       });
     });
-    $$('.featured .shots figure').forEach(function (fig) {
-      fig.addEventListener('click', function () {
+    $$('.featured .shots figure button').forEach(function (button) {
+      button.addEventListener('click', function () {
+        var fig = button.closest('figure');
         var img = fig.querySelector('img'), cap = fig.querySelector('figcaption');
         if (!img) return;
         openModal({ img: img.getAttribute('src'), cap: cap ? cap.textContent : '', type: 'img' });
@@ -461,8 +490,17 @@
 
     var closeBtn = $('#modalClose');
     if (closeBtn) closeBtn.addEventListener('click', closeModal);
+    modalRetry.addEventListener('click', function () { if (currentMedia) openModal(currentMedia); });
     modal.addEventListener('click', function (e) { if (e.target === modal) closeModal(); });
-    document.addEventListener('keydown', function (e) { if (e.key === 'Escape') closeModal(); });
+    document.addEventListener('keydown', function (e) {
+      if (!modal.classList.contains('open')) return;
+      if (e.key === 'Escape') { e.preventDefault(); closeModal(); }
+      if (e.key !== 'Tab') return;
+      var nodes = [closeBtn, modalVideo, modalRetry].filter(function (node) { return node && node.offsetParent !== null && !node.hidden; });
+      var first = nodes[0], last = nodes[nodes.length - 1];
+      if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
+      else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
+    });
   }
 
   /* ------------------------------------------------------------------ */
@@ -473,13 +511,25 @@
     if (!wrap) return;
     var grid = $('#videoGrid');
     var cards = $$('#videoGrid .work-card');
+    var result = $('#videoResult');
+
+    function showResult(f) {
+      var count = cards.filter(function (c) { return f === 'all' || c.dataset.cat === f; }).length;
+      result.textContent = '显示 ' + count + ' 项 / 共 ' + cards.length + ' 项';
+    }
+    $$('.fil', wrap).forEach(function (b) { b.setAttribute('aria-pressed', String(b.classList.contains('on'))); });
+    showResult('all');
 
     wrap.addEventListener('click', function (e) {
       var btn = e.target.closest('.fil');
       if (!btn) return;
-      $$('.fil', wrap).forEach(function (b) { b.classList.remove('on'); });
+      $$('.fil', wrap).forEach(function (b) {
+        b.classList.remove('on');
+        b.setAttribute('aria-pressed', String(b === btn));
+      });
       btn.classList.add('on');
       var f = btn.dataset.f;
+      showResult(f);
 
       if (reduce || !grid) {
         cards.forEach(function (c) { c.style.display = (f === 'all' || c.dataset.cat === f) ? '' : 'none'; });
@@ -508,6 +558,9 @@
         var t = document.querySelector(id);
         if (!t) return;
         e.preventDefault();
+        var mobileMenu = a.closest('.mobile-menu');
+        if (mobileMenu) mobileMenu.open = false;
+        if (id === '#main') t.focus({ preventScroll: true });
         window.scrollTo({ top: t.getBoundingClientRect().top + window.pageYOffset - (document.querySelector("nav").offsetHeight + 12), behavior: reduce ? 'auto' : 'smooth' });
       });
     });
@@ -626,6 +679,24 @@
   }
 
   /* ------------------------------------------------------------------ */
+  function initCopyLink() {
+    var button = $('#copyPortfolioLink');
+    var status = $('#copyStatus');
+    if (!button || !status) return;
+    var url = 'https://yymm15rd.github.io/ww/';
+    button.addEventListener('click', function () {
+      if (!navigator.clipboard || !navigator.clipboard.writeText) {
+        status.textContent = '请手动复制：' + url;
+        return;
+      }
+      navigator.clipboard.writeText(url).then(function () {
+        status.textContent = '作品集链接已复制';
+      }).catch(function () {
+        status.textContent = '请手动复制：' + url;
+      });
+    });
+  }
+
   function init() {
     initBackground();
     splitHero();
@@ -638,6 +709,7 @@
     initModal();
     initFilters();
     initAnchors();
+    initCopyLink();
   }
 
   if (document.readyState === 'loading') {
