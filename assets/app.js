@@ -461,7 +461,7 @@
         openModal({ src: a.dataset.video, cap: a.dataset.cap, type: 'video' });
       });
     });
-    $$('#videoGrid .work-card').forEach(function (card) {
+    $$('#videoGrid .work-card, #wheatGrid .work-card[data-cat="film"]').forEach(function (card) {
       card.addEventListener('click', function () {
         var h3 = card.querySelector('h3');
         var dur = card.querySelector('.dur');
