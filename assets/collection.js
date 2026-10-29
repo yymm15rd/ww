@@ -27,6 +27,6 @@
  $$('#posterGrid .work-card:not([data-cat])').forEach(c=>c.dataset.cat=/文字|Look/.test(c.textContent)?'type':'poster');
  $$('[data-filter]').forEach(wrap=>{const grid=document.getElementById(wrap.dataset.filter),cards=Array.from(grid.querySelectorAll('.work-card'));const result=document.getElementById(wrap.dataset.filter.replace('Grid','Result'));function filter(f){cards.forEach(c=>{c.hidden=f!=='all'&&c.dataset.cat!==f;});const visible=cards.filter(c=>!c.hidden);if(result)result.textContent='显示 '+visible.length+' 项 / 共 '+cards.length+' 项';}wrap.querySelectorAll('button[data-f]').forEach(x=>x.setAttribute('aria-pressed',String(x.classList.contains('on'))));wrap.addEventListener('click',e=>{const b=e.target.closest('button[data-f]');if(!b)return;wrap.querySelectorAll('button').forEach(x=>{x.classList.toggle('on',x===b);x.setAttribute('aria-pressed',String(x===b));});filter(b.dataset.f);});filter('all');});
  // Mobile navigation remains visible and wraps instead of disappearing.
- const counts=['videoGrid','aiGrid','posterGrid','interactiveGrid'].map(id=>document.getElementById(id).querySelectorAll('.work-card').length);
- window.portfolioCounts={video:counts[0],ai:counts[1],poster:counts[2],interactive:counts[3],total:counts.reduce((a,b)=>a+b,0)};
+ const counts=['videoGrid','aiGrid','posterGrid','interactiveGrid','wheatGrid'].map(id=>document.getElementById(id).querySelectorAll('.work-card').length);
+ window.portfolioCounts={video:counts[0],ai:counts[1],poster:counts[2],interactive:counts[3],wheat:counts[4],total:counts.reduce((a,b)=>a+b,0)};
 })();
